@@ -1,0 +1,25 @@
+Date: Sat, 21 Jan 2023 07:25:03 GMT
+Content-Type: text/html; charset=utf-8
+Status: 200 OK
+Cache-Control: must-revalidate, private, max-age=0
+X-Ratelimit-Limit: 300
+X-Ratelimit-Reset: 210123072603
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Ratelimit-Remaining: 299
+X-Ratelimit-Remaining: 247
+X-Xss-Protection: 1; mode=block
+X-Request-Id: b509f55b-9d36-44d5-8757-9b074ee3ab88
+X-Ua-Compatible: IE=Edge,chrome=1
+Etag: W/"b9293aa41e6398c1b885ce8b50186416"
+X-Content-Type-Options: nosniff
+X-Rack-Cache: miss
+Set-Cookie: _x_w=41; path=/; HttpOnly; secure
+Content-Encoding: gzip
+X-Fw-Ratelimiting-Managed: true
+X-Ratelimit-Total: 300
+X-Ratelimit-Used-Currentrequest: 1
+X-Envoy-Upstream-Service-Time: 110
+X-Trace-Id: 00-5a7e80ad4411d83045f9dcec1447ed8f-b2fe9f63c69052f9-00
+Nel: { "report_to": "nel-endpoint-freshdesk", "max_age": 60, "include_subdomains": true}
+Report-To: { "group": "nel-endpoint-freshdesk", "max_age": 60, "include_subdomains": true, "endpoints": [{"url": "https://edge-admin.us-east-1.freshedge.net/nelreports/freshdesk"}]}
+Server: fwe
