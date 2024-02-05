@@ -1,178 +1,133 @@
-import os
-import time
-import json 
-import re
+import json
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service 
-from selenium.common.exceptions import NoSuchElementException
-from pprint import pprint
+from selenium.webdriver.chrome.service import Service
 
-def wait_for_home_page(driver):
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[contains(concat(" ", @class, " "), "ps_grid-flex")]'))
-    )
-
-
-def event_details_page_scraper(driver):
-
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="win0divSCP_P_AUCDTL_VW_$0"]'))
-    )
-
-
-
-
-def get_page_links(url):
-    chrome_options = webdriver.ChromeOptions()
-    # chrome_options.add_argument("--headless") 
-    # chrome_options.add_argument(f'--proxy-server={proxy_server_url}')
+def initialize_driver():
+    """Initializes the Chrome driver with the appropriate settings."""
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run Chrome in headless mode.
+    chrome_options.add_argument("--disable-notifications")  # Disable notifications.
     chrome_options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications": 2})
-    chrome_options.add_argument("--disable-notifications")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
-   
-    driver.get(url)
-    solicitations_data = []
-   
+    return driver
+
+def wait_for_element(driver, locator, timeout=10):
+    """Waits for an element to be located on the page before returning it."""
+    return WebDriverWait(driver, timeout).until(EC.presence_of_element_located(locator))
+
+def extract_contact_details(driver):
+    """
+    Extracts procurement officer's email and phone from a modal, popup, or iframe.
+    """
     try:
-        wait_for_home_page(driver)
+        contact_button = driver.find_element(By.XPATH, '//*[@id="SCP_COSP_WK_FL_IMAGE_1$0"]')
+        contact_button.click()
+        # Use the wait_for_element function for the iframe
+        frame = wait_for_element(driver, (By.XPATH, "//iframe[contains(@src, '/SCP_PUBLIC_MENU_FL.SCP_PUB_BID_CMP_FL.GBL')]"))
+        driver.switch_to.frame(frame)
         
-        row_count = len(driver.find_elements(By.XPATH, '//*[contains(concat(" ", @class, " "), "ps_grid-flex")]/tbody/tr'))
-
-        for row_num in range(0, row_count):
-            row_id = f"SCP_PUB_AUC_VW$0_row_{row_num}"
-            print(row_id)
-            # Correct XPath and use a separate variable for the element
-            row_element = driver.find_element(By.ID, row_id)
-            row_element.click()
-            time.sleep(2)
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="win0divSCP_P_AUCDTL_VW_$0"]')))
-            state = 'georgia'
-            main_category = "N/a"
-            solicitation_type = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_AUC_TYPE$0"]').text.strip()
-            main_title = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_AUC_NAME$0"]').text.strip()
-            solicitation_summary = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_DESCRLONG$0"]').text.strip()
-            id = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_AUC_ID$0"]').text.strip()
-            alternate_id = "N/a"
-            status = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_AUC_STATUS$0"]').text.strip()
-            due_date_local = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_SCP_END_DATE_CHAR$0"]').text.strip().split(" ")[0]
-            due_date_time_local = " ".join(driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_SCP_END_DATE_CHAR$0"]').text.strip().split(" ")[1:])
-            issuing_agency = driver.find_element(By.XPATH, '//*[@id="BUS_UNIT_AUC_VW_DESCR$0"]').text.strip()
-            procurement_officer_buyer_name = " ".join(driver.find_element(By.XPATH, '//*[@id="PO_OPRDEFN_VW_OPRDEFNDESC$0"]').text.strip().split()[:-1])
-            additional_instructions = "N/a"
-            project_cost_class = "N/a"
-            location = "N/a"
-            miscellaneous = "N/a"
-            issue_date = driver.find_element(By.XPATH, '//*[@id="SCP_P_AUCDTL_VW_SCP_STRT_DATE_CHAR$0"]').text.strip()
-            bid_link = driver.current_url
-            
-            
-            contact_button = driver.find_element(By.XPATH, '//*[@id="SCP_COSP_WK_FL_IMAGE_1$0"]')
-            contact_button.click()
-            time.sleep(3)
-            # Wait for the iframe to be present and switch to it by src attribute
-            wait = WebDriverWait(driver, 10)
-            # Here we use `contains` to match a part of the src attribute value
-            frame = wait.until(EC.presence_of_element_located((By.XPATH, "//iframe[contains(@src, '/SCP_PUBLIC_MENU_FL.SCP_PUB_BID_CMP_FL.GBL')]")))
-            driver.switch_to.frame(frame)
-
-            # Now that the context is switched to the iframe, locate the email element
-            procurement_officer_email = driver.find_element(By.ID, 'SCP_P_AUCDTL_VW_EMAILID').text.strip()
-            procurement_officer_phone = driver.find_element(By.ID, 'SCP_P_AUCDTL_VW_PHONE').text.strip()
+        procurement_officer_email = driver.find_element(By.ID, 'SCP_P_AUCDTL_VW_EMAILID').text.strip()
+        procurement_officer_phone = driver.find_element(By.ID, 'SCP_P_AUCDTL_VW_PHONE').text.strip()
         
-            
-            # reload the page
-            driver.get(url)
+    except Exception as e:
+        print(f"Error extracting contact details: {e}")
+        procurement_officer_email, procurement_officer_phone = "N/a", "N/a"
+    
+    finally:
+        driver.get(driver.current_url)
+    
+    return procurement_officer_email, procurement_officer_phone
 
-            row_element = driver.find_element(By.ID, row_id)
-            row_element.click()
-            time.sleep(2)
 
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="win0divSCP_P_AUCDTL_VW_$0"]')))
+def extract_attachments(driver):
+    pass
 
-            view_bid_package_button = driver.find_element(By.XPATH, '//*[@id="SCP_COSP_WK_FL_DESCR2$0"]')
-            view_bid_package_button.click()
-            time.sleep(3)
-            
-            # Common base URL part of the src attribute
-            common_url_part = 'https://fscm.teamworks.georgia.gov/psc/supp/SUPPLIER/ERP/c/SCP_PUBLIC_MENU_FL.SCP_PUB_BID_CMP_FL.GBL?ICType=Panel&ICElementNum=0&ICStateNum'
 
-            # Wait for the iframe to be present and switch to it using a partial match on the src attribute
-            wait = WebDriverWait(driver, 10)
-            frame = wait.until(EC.presence_of_element_located((By.XPATH, f"//iframe[starts-with(@src, '{common_url_part}')]")))
-            driver.switch_to.frame(frame)
-            time.sleep(5)
 
-            # Locate the table container by its XPath
-            table_container = driver.find_element(By.XPATH, '//*[@id="win0divEOATT_G1L1_DVW_GROUPBOX3$0"]')
+def scrape_page(driver, url):
+    """ Scrapes the page and returns a list of dictionaries containing the data."""
+    driver.get(url)
+    wait_for_element(driver, (By.XPATH, '//*[contains(concat(" ", @class, " "), "ps_grid-flex")]'))
+    rows = driver.find_elements(By.XPATH, '//*[contains(concat(" ", @class, " "), "ps_grid-flex")]/tbody/tr')
+    data = []
 
-          
-            rows = table_container.find_elements(By.XPATH, './/tr')
-            rows_count = len(rows)
-            descriptions = []
-            for row_index in range(0, rows_count):
-                description = rows[row_index]
-                description_xpath = f".//div[@id='win0divEOATT_G1L3_DVW_EOATT_FIELD4${row_index}']"
-                
-                description_element = description.find_element(By.XPATH, description_xpath)
-                time.sleep(2)
-                descriptions.append(description_element.text.strip())
-                print(description_element.text.strip())
+    for row_num in range(len(rows)):
+        row_id = f"SCP_PUB_AUC_VW$0_row_{row_num}"
+        driver.find_element(By.ID, row_id).click()
+        wait_for_element(driver, (By.ID, "win0divSCP_P_AUCDTL_VW_$0"))
 
-           
+        state = "georgia"  # Default value
+        main_category = "N/a"  # Default value
+        solicitation_type = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_AUC_TYPE$0"]')
+        main_title = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_AUC_NAME$0"]')
+        solicitation_summary = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_DESCRLONG$0"]')
+        id = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_AUC_ID$0"]')
+        alternate_id = "N/a"  # Default value
+        status = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_AUC_STATUS$0"]')
+        due_date_local = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_SCP_END_DATE_CHAR$0"]').split(" ")[0]
+        due_date_time_local = " ".join(get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_SCP_END_DATE_CHAR$0"]').split(" ")[1:])
+        issuing_agency = get_text(driver, '//*[@id="BUS_UNIT_AUC_VW_DESCR$0"]')
+        procurement_officer_buyer_name = " ".join(get_text(driver, '//*[@id="PO_OPRDEFN_VW_OPRDEFNDESC$0"]').split()[:-1])
+        issue_date = get_text(driver, '//*[@id="SCP_P_AUCDTL_VW_SCP_STRT_DATE_CHAR$0"]')
+        bid_link = driver.current_url
+        additional_instructions = "N/a"  # Default value
+        project_cost_class = "N/a"  # Default value
+        location = "N/a"  # Default value
+        miscellaneous = "N/a"  # Default value
 
-            
-        
-            # solicitation_data = {
-            #     "state": state,
-            #     "main_category": main_category,
-            #     "solicitation_type": solicitation_type,
-            #     "main_title": main_title,
-            #     "solicitation_summary": solicitation_summary,
-            #     "id": id,
-            #     "alternate_id": alternate_id,
-            #     "status": status,
-            #     "due_date_local": due_date_local,
-            #     "due_date_time_local": due_date_time_local,
-            #     "issuing_agency": issuing_agency,
-            #     "procurement_officer_buyer_name": procurement_officer_buyer_name,
-            #     "procurement_officer_email": procurement_officer_email,
-            #     "procurement_officer_phone": procurement_officer_phone,
-            #     "additional_instructions": additional_instructions,
-            #     "project_cost_class": project_cost_class,
-            #     "location": location,
-            #     "issue_date": issue_date,
-            #     "bid_link": bid_link,
-            #     "miscellaneous": miscellaneous
-            # }
+        # Extract contact details
+        procurement_officer_email, procurement_officer_phone = extract_contact_details(driver)
 
-            # solicitations_data.append(solicitation_data)
-            
+        data.append({
+            "state": state,
+            "main_category": main_category,
+            "solicitation_type": solicitation_type,
+            "main_title": main_title,
+            "solicitation_summary": solicitation_summary,
+            "id": id,
+            "alternate_id": alternate_id,
+            "status": status,
+            "due_date_local": due_date_local,
+            "due_date_time_local": due_date_time_local,
+            "issuing_agency": issuing_agency,
+            "procurement_officer_buyer_name": procurement_officer_buyer_name,
+            "procurement_officer_email": procurement_officer_email,
+            "procurement_officer_phone": procurement_officer_phone,
+            "issue_date": issue_date,
+            "bid_link": bid_link,
+            "additional_instructions": additional_instructions,
+            "project_cost_class": project_cost_class,
+            "location": location,
+            "miscellaneous": miscellaneous
+        })
 
-            # back_button = driver.find_element(By.XPATH, '//*[(@id = "PT_WORK_PT_BUTTON_BACK")]')
-            # back_button.click()
-            # time.sleep(2)
-            driver.get(url)
-            # wait_for_home_page(driver)
-        
+        driver.get(url)  # Reload the main page to reset the state for the next iteration.
+
+    return data
+
+
+
+def get_text(driver, xpath):
+    """Returns the text of an element identified by the xpath."""
+    element = wait_for_element(driver, (By.XPATH, xpath))
+    return element.text.strip() if element else ""
+
+def main():
+    base_url = "https://fscm.teamworks.georgia.gov/psc/supp/SUPPLIER/ERP/c/SCP_PUBLIC_MENU_FL.SCP_PUB_BID_CMP_FL.GBL"
+    driver = initialize_driver()
+    try:
+        solicitation_data = scrape_page(driver, base_url)
+        with open("solicitations.json", "w") as file:
+            json.dump(solicitation_data, file, indent=4)
     finally:
         driver.quit()
-    for description in descriptions:
-        print(description)
-    
-
-    # with open("georgia.json", "w") as outfile:
-    #     json.dump(solicitations_data, outfile, indent=4)
-
 
 if __name__ == "__main__":
-    base_url = "https://fscm.teamworks.georgia.gov/psc/supp/SUPPLIER/ERP/c/SCP_PUBLIC_MENU_FL.SCP_PUB_BID_CMP_FL.GBL"
-    get_page_links(base_url)       
+    main()
