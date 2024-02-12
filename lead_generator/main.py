@@ -1,47 +1,47 @@
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import json
+import os
+import pandas as pd
 
-# Initialize the WebDriver
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--ignore-certificate-errors')  # This bypasses SSL certificate errors
-chrome_options.add_argument('--ignore-ssl-errors') 
-chrome_options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications": 2})
-chrome_options.add_argument("--disable-notifications")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-driver.maximize_window()
+folder_path = os.path.join(os.getcwd())
+
+# Read the json file
+with open(os.path.join(folder_path, 'leads.json'), encoding='utf-8') as f:
+    data = json.load(f)
+
+# upload data to excel file according to the json fields
+df = pd.DataFrame(data)
+df.to_excel(os.path.join(folder_path, 'leads.xlsx'), index=False)
+
+# Read the excel file
+df = pd.read_excel(os.path.join(folder_path, 'leads.xlsx'))
+print(df)
 
 
-# Open the target URL
-driver.get("https://www.msn.com/en-us/news")
+# import json
+# import os
 
-# Wait for initial elements to load and store the element in a separate variable
-element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//grid-view-feed")))
+# def read_json_data(filepath):
+#     """
+#     Reads data from a JSON file.
 
-# Now proceed with the scrolling using the original 'driver' object
-last_height = driver.execute_script("return document.body.scrollHeight")
+#     Args:
+#         filepath (str): The path to the JSON file.
 
-while True:
-    # Scroll down to the bottom
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    
-    # Wait to load the page
-    time.sleep(5)
+#     Returns:
+#         list: A list of dictionaries representing the JSON data.
+#     """
+#     try:
+#         with open(filepath, 'r', encoding='utf-8') as f:
+#             data = json.load(f)
+#         return data
+#     except FileNotFoundError:
+#         print(f"Error: JSON file not found at: {filepath}")
+#         return None
 
-    # Calculate new scroll height and compare with last scroll height
-    new_height = driver.execute_script("return document.body.scrollHeight")
-    if new_height == last_height:
-        break
-    last_height = new_height
 
-# program logic here
+# # OR
+# leads_data = read_json_data(os.path.join(os.getcwd(), 'leads.json'))
 
-# Don't forget to close the WebDriver at the end
-driver.quit()
+# if leads_data:
+#     for lead in leads_data:
+#         print(lead)  # Process each lead dictionary
