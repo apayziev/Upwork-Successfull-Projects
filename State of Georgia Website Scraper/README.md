@@ -7,7 +7,7 @@ It's designed for analysts, researchers, and businesses interested in procuremen
 
 This scraper aims to streamline the collection of procurement data, which is typically a manual and time-consuming task. By automating this process, the tool facilitates easier analysis of procurement opportunities, tracking of solicitation updates, and optimization of the bidding process. Utilizing Selenium for web interactions, it ensures even dynamically loaded content is accurately captured.
 
-[![Watch the video]](https://youtu.be/nxqJRmmkX8U)
+[Watch the video](https://youtu.be/nxqJRmmkX8U)
 
 ## Getting Started
 
