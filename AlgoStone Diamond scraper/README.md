@@ -3,7 +3,9 @@
 ## Overview
 I developed a robust and efficient web scraper for a client on Upwork to extract information on over 4k+ diamonds from a specialized website. The project's success underscores my ability to deliver quality web scraping solutions that handle significant volumes of data.
 
-## Key Challenges
+## [Project video link](https://www.youtube.com/watch?v=7-a5e9hEBpw)
+
+## Key Challenges 
 
 - **Website Complexity** The target diamond website had a complex structure and dynamic elements, requiring careful navigation and data extraction strategies.
 
