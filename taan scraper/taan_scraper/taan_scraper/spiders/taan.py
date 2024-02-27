@@ -24,7 +24,6 @@ class TaanSpider(scrapy.Spider):
             yield scrapy.Request(member_url, callback=self.parse_member_info, meta={'letter': letter})
 
     def extract_member_info(self, response):
-        
         member_detail_list  = response.xpath('//ul[@class="list-group small"]')
         for row_item in member_detail_list:
             member_info = {}
