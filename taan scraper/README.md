@@ -20,6 +20,11 @@ The scraper is capable of extracting the following member details from TAAN's we
 - Key Person
 - Establishment Date
 
+## Primary Packages
+    - Scrapy: Scraping the content
+    - Pandas: Used for data manipulation and for saving the scraped information into an Excel file.
+
+
 ## Installation guide
 
 1. Create environment inside project folder:<br/>
