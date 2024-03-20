@@ -10,6 +10,7 @@ class TaanSpider(scrapy.Spider):
 
 
     def start_requests(self):
+        """" This function will generate the urls for each letter of the alphabet and call the parse_members function"""
         for letter in self.lower_alphabet_letters:
             url = f"https://www.taan.org.np/members?l={letter}"
             yield scrapy.Request(url, callback=self.parse_members)  
@@ -17,6 +18,7 @@ class TaanSpider(scrapy.Spider):
 
 
     def parse_members(self, response):
+        """This function will extract the member urls from the page and call the parse_member_info function"""
         letter = response.url.split("=")[-1]
         members = response.xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "news-list", " " ))]//a')
         for member in members:
@@ -24,6 +26,7 @@ class TaanSpider(scrapy.Spider):
             yield scrapy.Request(member_url, callback=self.parse_member_info, meta={'letter': letter})
 
     def extract_member_info(self, response):
+        """This function will extract the member details from the page"""
         member_detail_list  = response.xpath('//ul[@class="list-group small"]')
         for row_item in member_detail_list:
             member_info = {}
@@ -102,16 +105,19 @@ class TaanSpider(scrapy.Spider):
             return member_info
 
     def parse_member_info(self, response):
+        """This function will call the extract_member_info function and append the member details to all_member_data list"""
         member_info = self.extract_member_info(response)
         self.all_member_data.append(member_info)
 
     
     def closed(self, reason):
+        """This function will call the save_to_excel function"""
         df = pd.DataFrame(self.all_member_data)
         self.save_to_excel(df)
 
 
     def save_to_excel(self, df):
+        """This function will save the member details to an excel file"""
         df.to_excel("taan_members.xlsx", index=False)
         self.log("Saved file taan_members.xlsx")
         
