@@ -21,4 +21,4 @@ For MacOS:
 5. Enjoy the program!😉
 
 Important note:
-    - you need to remove *thingtesting_brand_links.txt* and *thingtesting_data.xlsx* files before running the script again to avoid duplicate data.
+ - you need to remove *thingtesting_brand_links.txt* and *thingtesting_data.xlsx* files before running the script again to avoid duplicate data.
