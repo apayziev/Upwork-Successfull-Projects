@@ -1,21 +1,22 @@
 import logging
-import logging
-import pandas as pd
 import multiprocessing as mp
 import time
+import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    TimeoutException,
+    StaleElementReferenceException
+)
 from selenium.webdriver.support.select import Select
 
 from driver_settings import initialize_driver
 
-
 def wait_for_element(driver, locator, timeout=10):
     """Waits for an element to be located on the page before returning it."""
     return WebDriverWait(driver, timeout).until(EC.presence_of_element_located(locator))
-
 
 def extract_quantity(message):
     """Extracts the available quantity from the given message."""
@@ -26,15 +27,13 @@ def extract_quantity(message):
         return available_quantity.strip()
     return None
 
-
 def get_product_info(driver, product_link, search_term):
     """Extracts the product information from the product page."""
-    driver.set_window_size(1040, 400)
     try:
         driver.get(product_link)
 
-        # Wait for main product section (adjust XPath if needed)
-        wait_for_element(driver, (By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "pdp-main-panel", " " ))]'))
+        # Wait for main product section
+        wait_for_element(driver, (By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "pdp-main-panel", " " ))]'), timeout=5)
 
         product_url = driver.current_url
 
@@ -75,7 +74,7 @@ def get_product_info(driver, product_link, search_term):
             }
 
         # Wait for other elements involved in cart interactions
-        time.sleep(2)  # Small delay after actions
+        time.sleep(1)  # Small delay after actions
         go_to_cart_button = wait_for_element(driver, (By.XPATH, '//button[@class="button checkout-now dark"]'), timeout=5)
         go_to_cart_button.click()
 
@@ -92,7 +91,7 @@ def get_product_info(driver, product_link, search_term):
         quantity_input.clear()  # Clear any existing values
         quantity_input.send_keys('9999')
 
-        time.sleep(1)
+        time.sleep(2)
         update_button = wait_for_element(driver, (By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "quantity-update", " " ))]'), timeout=5)
         update_button.click()
 
@@ -131,21 +130,16 @@ def process_product_link(product_link, search_term, queue):
         driver = initialize_driver()  # Initialize a new driver within the process
         product_info = get_product_info(driver, product_link, search_term)
         queue.put(product_info)
-    except Exception as outer_exception:
-        try:
-            product_info = get_product_info(driver, product_link, search_term)
-            queue.put(product_info)
-        except Exception as inner_exception:
-            logging.error("Failed to get product info for %s: %s", product_link, inner_exception)
     finally:
         driver.quit()
 
 def scrape_product_info(search_term):
+    """Scrapes product information for the given search term."""
     search_term_ = search_term.lower().replace(" ", "_")
     with open(f"product_links_{search_term_}.txt", "r", encoding="utf-8") as f:
         product_links = f.read().splitlines()
 
-    num_processes = 3  # Adjust this number based on your available CPU cores
+    num_processes = max(1, mp.cpu_count() - 1)  # Reserve one CPU for the main process
 
     with mp.Manager() as manager:
         queue = manager.Queue()  # Queue to store results from processes
