@@ -1,3 +1,4 @@
+import os
 import logging
 import multiprocessing as mp
 import time
@@ -13,6 +14,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.support.select import Select
 
 from driver_settings import initialize_driver
+from search_terms import search_terms
 
 def wait_for_element(driver, locator, timeout=10):
     """Waits for an element to be located on the page before returning it."""
@@ -136,7 +138,8 @@ def process_product_link(product_link, search_term, queue):
 def scrape_product_info(search_term):
     """Scrapes product information for the given search term."""
     search_term_ = search_term.lower().replace(" ", "_")
-    with open(f"product_links_{search_term_}.txt", "r", encoding="utf-8") as f:
+    product_links_folder = "product_links"
+    with open(f"{product_links_folder}/product_links_{search_term_}.txt", "r", encoding="utf-8") as f:
         product_links = f.read().splitlines()
 
     num_processes = max(1, mp.cpu_count() - 1)  # Reserve one CPU for the main process
@@ -160,7 +163,19 @@ def scrape_product_info(search_term):
     df = pd.DataFrame(product_info)
 
     current_date = pd.Timestamp.now().strftime('%Y-%m-%d')
-    file_name = f'product_info_{current_date}.csv'
+    outputs_folder = 'outputs'
+    file_name = f'{outputs_folder}/product_info_{search_term_}_{current_date}.csv'
 
-    # Save the DataFrame to a CSV file
+    # Check if the outputs folder exists, create it if it doesn't
+    if not os.path.exists(outputs_folder):
+        os.makedirs(outputs_folder)
+
+    # Save the DataFrame to a CSV file in the outputs folder
     df.to_csv(file_name, index=False)
+
+
+if __name__ == "__main__":
+    for search_term in search_terms:
+        scrape_product_info(search_term)
+        print(f"Finished scraping product information for '{search_term}'.")
+
