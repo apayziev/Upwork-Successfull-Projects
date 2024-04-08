@@ -139,8 +139,13 @@ def scrape_product_info(search_term):
     """Scrapes product information for the given search term."""
     search_term_ = search_term.lower().replace(" ", "_")
     product_links_folder = "product_links"
-    with open(f"{product_links_folder}/product_links_{search_term_}.txt", "r", encoding="utf-8") as f:
-        product_links = f.read().splitlines()
+
+    try:
+        with open(f"{product_links_folder}/product_links_{search_term_}.txt", "r", encoding="utf-8") as f:
+            product_links = f.read().splitlines()
+    except FileNotFoundError:
+        logging.error("Product links file not found for search term '%s'", search_term)
+        return
 
     num_processes = max(1, mp.cpu_count() - 1)  # Reserve one CPU for the main process
 
