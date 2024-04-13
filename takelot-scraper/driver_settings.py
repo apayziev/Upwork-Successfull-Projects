@@ -9,6 +9,8 @@ def initialize_driver():
     """Initializes the Chrome driver with the appropriate settings."""
     ua = UserAgent()
     chrome_options = Options()
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # Suppresses certain terminal logs, not all
+    chrome_options.add_argument("--log-level=3")  # Suppresses all terminal logs
     chrome_options.add_argument("--headless")  # Run Chrome in headless mode.
     chrome_options.add_argument(f"user-agent={ua.random}")  # Set the user agent.
     chrome_options.add_argument("--disable-notifications")  # Disable notifications.
