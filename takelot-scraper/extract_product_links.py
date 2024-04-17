@@ -28,7 +28,7 @@ def click_load_more_button(driver):
 
 def extract_product_links(search_term):
     driver = initialize_driver()
-    driver.get(f"https://www.takealot.com/all?qsearch={search_term}")
+    driver.get("https://www.takealot.com/")
     clicks = 0
     product_links = set()
     
@@ -38,10 +38,25 @@ def extract_product_links(search_term):
     except (NoSuchElementException, StaleElementReferenceException):
         pass  # Or retry if desired
     
+    # search input
+    try:
+        search_input = driver.find_element(By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "search-field", " " ))]')
+        search_input.send_keys(search_term)
+    except NoSuchElementException:
+        print("Search input not found.")
+
+    # search button
+    try:
+        search_button = driver.find_element(By.XPATH, '//*[contains(concat( " ", @class, " " ), concat( " ", "search-icon", " " ))]')
+        search_button.click()
+    except NoSuchElementException:
+        print("Search button not found.")
+        
+    
     load_more_button_xpath = "//button[contains(@class, 'search-listings-module_load-more_OwyvW')]"
     # check if the "Load More" button exists on the page
     if not driver.find_elements(By.XPATH, load_more_button_xpath):
-        driver.refresh()
+        # driver.refresh()
         driver.implicitly_wait(2)
         product_links = {link.get_attribute("href") for link in driver.find_elements(By.XPATH, '//*[contains(@class, "product-card-module_product-anchor_TUCBV")]')}
 
@@ -56,12 +71,15 @@ def extract_product_links(search_term):
             product_links.update(new_links)
         
         clicks += 1
-        print(f"Clicked 'Load More' {clicks} times.")
+        print(f"Clicked 'Load More' for {search_term} | {clicks} times.")
     
-
     search_term_ = search_term.lower().replace(" ", "_")
     product_links_folder = "product_links"
-    file_path = f"{product_links_folder}/product_links_{search_term_}.txt"
+    if search_term_[0] == '"' and search_term_[-1] == '"':
+        search_term_ = search_term_[1:-1]
+        file_path = f"{product_links_folder}/product_links_{search_term_}_with_quotes.txt"
+    else:
+        file_path = f"{product_links_folder}/product_links_{search_term_}.txt"
 
     # Check if the product_links folder exists, create it if it doesn't
     if not os.path.exists(product_links_folder):
