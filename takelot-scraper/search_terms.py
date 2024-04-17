@@ -1,2 +1,4 @@
 search_terms = ["Sea Mos Capsules", "Shilajit"]
-# search_terms = ["cayenne pepper capsules","Shilajit", "Cayan Peper", "Sea Mos Capsules", "Curcumin Supplements"]
+# sample search_terms = ["cayenne pepper capsules","Shilajit", "Cayan Peper", "Sea Mos Capsules", "Curcumin Supplements"]
+
+# search_term with quotation marks ['"sea moss"', "sea moss"]
