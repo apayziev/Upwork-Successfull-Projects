@@ -74,7 +74,7 @@ def get_product_info(driver, product_link, search_term):
             product_price = driver.find_element(By.CSS_SELECTOR, 'span.currency.plus[data-ref="buybox-price-main"]').text.strip()
         except NoSuchElementException:
             product_price = None
-
+        
         try:
             add_to_cart_button = wait_for_element(driver, (By.CSS_SELECTOR, 'a[class*="add-to-cart-button-module_add-to-cart-button_1a9gT"]'), timeout=5)
             add_to_cart_button.click()
@@ -84,7 +84,7 @@ def get_product_info(driver, product_link, search_term):
                 "search_term": search_term,
                 "product_name": product_name,
                 "product_price": product_price,
-                "available_quantity": None
+                "available_quantity": None,
             }
         
         go_to_cart_button = WebDriverWait(driver, 10).until(
@@ -153,17 +153,48 @@ def process_product_link(product_link, search_term, file_path, driver):
         product_info = retry_operation(get_product_info, 2, driver, product_link, search_term)
         with open(file_path, 'a', encoding='utf-8', newline='') as f:
             pd.DataFrame([product_info]).to_csv(f, header=f.tell()==0, index=False)
+        if product_info["available_quantity"] is not None:
+            return True, None, False  # Processing successful, no failed link, quantity found
+        else:
+            return True, product_link, True  # Processing successful, but quantity missing
     except Exception as e:
         logging.error(f"Failed to process {product_link}: {str(e)}")
+        return False, product_link, False  # Processing failed, return the link
 
 def worker(product_links, search_term, file_path):
     driver = initialize_driver()
+    failed_urls = []
+    missing_quantity_urls = []
     try:
         for product_link in product_links:
-            process_product_link(product_link, search_term, file_path, driver)
+            success, failed_link, quantity_missing = process_product_link(product_link, search_term, file_path, driver)
+            if not success:
+                failed_urls.append(failed_link)
+            if quantity_missing:
+                missing_quantity_urls.append(failed_link)
     finally:
         driver.quit()
-        
+
+    # Retry failed URLs
+    if failed_urls:
+        logging.info(f"Retrying failed URLs for {search_term}")
+        driver = initialize_driver()
+        try:
+            for product_link in failed_urls:
+                process_product_link(product_link, search_term, file_path, driver)
+        finally:
+            driver.quit()
+
+    # Retry URLs missing quantity
+    if missing_quantity_urls:
+        logging.info(f"Retrying URLs with missing quantity for {search_term}")
+        driver = initialize_driver()
+        try:
+            for product_link in missing_quantity_urls:
+                process_product_link(product_link, search_term, file_path, driver)
+        finally:
+            driver.quit()
+
 
 def scrape_product_info(search_term):
     search_term_ = search_term.lower().replace(" ", "_")
