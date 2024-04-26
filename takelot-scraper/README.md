@@ -15,4 +15,4 @@ For MacOS:
     `source venv/bin/activate`
 
 3. Installing all required packages:
-    `pip install -r requirments.txt`
+    `pip install -r requirements.txt`
