@@ -1,0 +1,5 @@
+# Botasaurus - All-in-one web scraping framework
+botasaurus>=4.0.0
+
+# US states validation
+us>=3.0.0
