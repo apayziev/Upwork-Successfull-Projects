@@ -1,0 +1,60 @@
+# =====================================================
+# PYTHON PROJECT: Lee County Permit Scraper
+# =====================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+env/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+*.spec
+
+# PyInstaller output
+*.manifest
+*.spec
+output/
+chrome_profile/
+playwright/.local-browsers/
+patchright/.local-browsers/
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.DS_Store
+
+# Jupyter / VS Code
+.ipynb_checkpoints/
+.vscode/
+.history/
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# GitHub Actions cache
+.github/workflows/__pycache__/
+.github/workflows/*.log
+
+# Results / generated files
+output/
+*.json
+*.csv
+
+# Ignore generated EXEs and artifacts
+LeeCountyPermitScraper.exe
+LeeCountyPermitScraper.zip

@@ -1,0 +1,2 @@
+patchright>=1.0.0
+PyQt6>=6.6.0
