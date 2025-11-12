@@ -2,6 +2,14 @@
 
 A GUI application to scrape permit data from Lee County's Accela portal.
 
+![Lee County Permit Scraper GUI](LeeCountyPermitScraper%20EXE.png)
+
+## Download Pre-built Executable
+
+**For Windows users:** You can download the ready-to-use executable from the [GitHub Releases](../../releases) page. No installation or setup required!
+
+The executable is automatically built using GitHub Actions, ensuring a consistent and reliable build process.
+
 ## Quick Start
 
 ### Windows
@@ -85,3 +93,25 @@ patchright install chrome
 - Make sure Python is installed
 - Make sure all dependencies are installed
 - Check that PyQt6 installed correctly
+
+## Building from Source
+
+The Windows executable is automatically built using GitHub Actions. If you want to build it yourself:
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build the executable
+pyinstaller LeeCountyPermitScraper.spec
+```
+
+The built executable will be in the `dist/` folder.
+
+## CI/CD
+
+This project uses GitHub Actions for automated builds:
+- **Workflow:** `.github/workflows/build-windows.yml`
+- **Trigger:** On push to main branch or manual workflow dispatch
+- **Output:** Windows executable automatically created and available in GitHub Releases
+- **Platform:** Windows (x64)
