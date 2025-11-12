@@ -23,7 +23,6 @@ dist/
 # PyInstaller output
 *.manifest
 *.spec
-output/
 chrome_profile/
 playwright/.local-browsers/
 patchright/.local-browsers/
@@ -49,11 +48,6 @@ desktop.ini
 # GitHub Actions cache
 .github/workflows/__pycache__/
 .github/workflows/*.log
-
-# Results / generated files
-output/
-*.json
-*.csv
 
 # Ignore generated EXEs and artifacts
 LeeCountyPermitScraper.exe
